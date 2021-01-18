@@ -1,5 +1,7 @@
+import os
 import time
 import mss
+import uuid
 
 from dirs import Dirs
 from mode import Mode
@@ -14,7 +16,7 @@ def get_monitor() -> dict:
         raise ValueError('Unable to find desired monitor')
 
 
-def grab() -> None:
+def grab(output_dir: str) -> None:
     monitor = get_monitor()
 
     monitor['top'] = monitor['top'] + 365
@@ -28,9 +30,16 @@ def grab() -> None:
     if shot is None:
         raise Exception('Unable to take screenshot')
 
-    output = 'sct-{top}x{left}_{width}x{height}.png'.format(**monitor)
+    monitor['id'] = uuid.uuid4()
+    filename = 'sct-{top}x{left}_{width}x{height}-{id}.png'.format(**monitor)
+    output_path = os.path.join(output_dir, filename)
+
     # noinspection PyUnresolvedReferences
-    mss.tools.to_png(shot.rgb, shot.size, output=output)
+    mss.tools.to_png(shot.rgb, shot.size, output=output_path)
+
+
+def log(msg: str) -> None:
+    print(f'[{time.time():.1f}] {msg}')
 
 
 def main():
@@ -38,9 +47,14 @@ def main():
     dirs = Dirs('img')
 
     while True:
+        mode.update()
+        log(f'Detected mode: {mode}')
+
         if mode.value == Mode.GRAB:
-            grab()
+            log(f'Grabbing image to {dirs.temp} directory')
+            grab(dirs.temp)
         elif mode.value == Mode.ACCEPT or mode.value == Mode.DISMISS:
+            log('Moving items to target folder')
             dirs.move_items(mode)
 
         time.sleep(0.5)
