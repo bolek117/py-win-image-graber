@@ -23,8 +23,9 @@ class Dirs:
                 os.mkdir(d)
 
         # Cleanup unused files from last session
-        for f in os.listdir(self.temp):
-            os.remove(f)
+        orphaned_files = os.listdir(self.temp)
+        for f in orphaned_files:
+            os.remove(os.path.join(self.temp, f))
 
     def move_items(self, mode: Mode) -> None:
         target_dir = self.true_pos if mode.value == Mode.ACCEPT \
