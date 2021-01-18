@@ -19,8 +19,12 @@ class Mode:
         try:
             mode = int(os.environ.get('ED_SCREENSHOT_MODE'))
         except ValueError:
-            print(f'Invalid mode (found `{mode}` of type {type(mode)}. '
+            print(f'Invalid mode (found `{os.environ.get(mode)}` of type {type(mode)}. '
                   f'Defaulting to STOP ({Mode.STOP})')
+            mode = Mode.STOP
+
+        # Handle: mode is not power of 2
+        if (mode & (mode-1) == 0) and mode != 0:
             mode = Mode.STOP
 
         self.value = mode
@@ -30,3 +34,8 @@ class Mode:
         for k, v in Mode.__dict__.items():
             if v == self.value:
                 return k
+
+        return f'{self.value} (Unknown)'
+
+    def __repr__(self):
+        return f'Val: {self.value} ({self.__str__()})'
