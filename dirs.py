@@ -23,7 +23,7 @@ class Dirs:
                 os.mkdir(d)
 
         # Cleanup unused files from last session
-        for f in self.temp:
+        for f in os.listdir(self.temp):
             os.remove(f)
 
     def move_items(self, mode: Mode) -> None:
