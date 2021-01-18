@@ -28,7 +28,7 @@ class Dirs:
             os.remove(os.path.join(self.temp, f))
 
     def move_items(self, mode: Mode) -> None:
-        target_dir = self.true_pos if mode.value == Mode.ACCEPT \
+        target_dir = self.true_pos if mode.get_mode() == Mode.ACCEPT \
             else self.false_pos
 
         files = os.listdir(self.temp)

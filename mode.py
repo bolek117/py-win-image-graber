@@ -8,34 +8,51 @@ class Mode:
     DISMISS: int = 4
 
     def __init__(self):
-        self.value = Mode.STOP
+        self.__mode = Mode.STOP
         self.last = Mode.STOP
 
+        self.__var_name = 'ED_SCREENSHOT_MODE'
+
     def update(self) -> int:
-        var_name = 'ED_SCREENSHOT_MODE'
-        if var_name not in os.environ:
-            os.environ.setdefault(var_name, f'{Mode.STOP}')
+        if self.__var_name not in os.environ:
+            os.environ.setdefault(self.__var_name, f'{Mode.STOP}')
 
-        try:
-            mode = int(os.environ.get('ED_SCREENSHOT_MODE'))
-        except ValueError:
-            print(f'Invalid mode (found `{os.environ.get(mode)}` of type {type(mode)}. '
-                  f'Defaulting to STOP ({Mode.STOP})')
-            mode = Mode.STOP
-
-        # Handle: mode is not power of 2
-        if (mode & (mode-1) == 0) and mode != 0:
-            mode = Mode.STOP
-
-        self.value = mode
-        return self.value
+        mode = os.environ.get(self.__var_name)
+        self.set(mode)
+        return self.get_mode()
 
     def __str__(self):
         for k, v in Mode.__dict__.items():
-            if v == self.value:
+            if v == self.get_mode():
                 return k
 
-        return f'{self.value} (Unknown)'
+        return f'{self.__mode} (Unknown)'
 
     def __repr__(self):
-        return f'Val: {self.value} ({self.__str__()})'
+        return f'Val: {self.get_mode()} ({self.__str__()})'
+
+    @staticmethod
+    def __parse_mode(mode: int) -> int:
+        default_value = Mode.STOP
+
+        try:
+            mode = int(mode)
+        except ValueError:
+            print(f'Unable to cast to int (found `{mode}` of type {type(mode)}). Defaulting')
+            return default_value
+
+        return mode
+
+    def set(self, mode):
+        mode = self.__parse_mode(mode)
+        os.environ[self.__var_name] = f'{mode}'
+        self.__mode = mode
+
+    def get_mode(self) -> int:
+        values = Mode.__dict__.values()
+        for v in values:
+            if v == self.__mode:
+                return v
+
+        self.set(Mode.STOP)
+        return self.get_mode()

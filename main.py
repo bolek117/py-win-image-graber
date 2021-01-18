@@ -47,15 +47,16 @@ def main():
     dirs = Dirs('img')
 
     while True:
-        mode.update()
+        m = mode.update()
         log(f'Detected mode: {mode}')
 
-        if mode.value == Mode.GRAB:
+        if m == Mode.GRAB:
             log(f'Grabbing image to {dirs.temp} directory')
             grab(dirs.temp)
-        elif mode.value == Mode.ACCEPT or mode.value == Mode.DISMISS:
+        elif m == Mode.ACCEPT or m == Mode.DISMISS:
             log('Moving items to target folder')
             dirs.move_items(mode)
+            mode.set(Mode.STOP)
 
         time.sleep(0.5)
 
