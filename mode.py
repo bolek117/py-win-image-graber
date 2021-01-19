@@ -11,15 +11,24 @@ class Mode:
         self.__mode = Mode.STOP
         self.last = Mode.STOP
 
-        self.__var_name = 'ED_SCREENSHOT_MODE'
+        self.__var_name = 'mode'
 
     def update(self) -> int:
-        if self.__var_name not in os.environ:
-            os.environ.setdefault(self.__var_name, f'{Mode.STOP}')
+        with open('config.ini', 'r') as f:
+            for line in f:
+                if line.startswith(self.__var_name):
+                    _, mode = line.split('=')
 
-        mode = os.environ.get(self.__var_name)
-        self.set(mode)
-        return self.get_mode()
+                    mode = self.__parse_mode(mode)
+                    if self.__mode == mode:
+                        return self.__mode
+
+                    self.set(mode)
+                    return self.__mode
+
+        # Failsafe
+        self.set(Mode.STOP)
+        return Mode.STOP
 
     def __str__(self):
         for k, v in Mode.__dict__.items():
@@ -31,8 +40,7 @@ class Mode:
     def __repr__(self):
         return f'Val: {self.get_mode()} ({self.__str__()})'
 
-    @staticmethod
-    def __parse_mode(mode: int) -> int:
+    def __parse_mode(self, mode: int) -> int:
         default_value = Mode.STOP
 
         try:
@@ -45,7 +53,15 @@ class Mode:
 
     def set(self, mode):
         mode = self.__parse_mode(mode)
-        os.environ[self.__var_name] = f'{mode}'
+
+        content = [
+            '[ed]\r\n',
+            f'mode={mode}'
+        ]
+
+        with open('config.ini', 'w') as f:
+            f.writelines(content)
+
         self.__mode = mode
 
     def get_mode(self) -> int:
@@ -54,5 +70,6 @@ class Mode:
             if v == self.__mode:
                 return v
 
+        # Failsafe
         self.set(Mode.STOP)
         return self.get_mode()
